@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(userDto.getPassword());
         user.setRole(userDto.getRole());
         /**
-         * Image uploaded here
+         * Image uploaded here...
          */
         String profileImg = profileImage.getName();
         user.setProfileImagePath(profileImg);
