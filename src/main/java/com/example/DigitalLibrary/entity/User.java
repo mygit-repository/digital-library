@@ -36,6 +36,9 @@ public class User extends Auditable<String> {
     @Column(name = "role", nullable = false)
     Role role; // SUPER_ADMIN, OFFICIAL, STUDENT
 
+    @Column(name = "regd_no", length = 10)
+    String regdNo;
+
 //    @ElementCollection(fetch = FetchType.EAGER)
 //    @Enumerated(EnumType.STRING)
 //    @CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
@@ -50,7 +53,7 @@ public class User extends Auditable<String> {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    UserStatus status = UserStatus.ACTIVE;
+    UserStatus status;
 
     @Column(name = "is_deleted")
     Boolean isDeleted = false; //True means deleted, false means not deleted

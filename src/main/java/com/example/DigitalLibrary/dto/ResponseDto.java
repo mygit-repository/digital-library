@@ -18,6 +18,7 @@ public class ResponseDto {
     long id;
     String status;
     String message;
+    String userRegdNo;
     String token;
     @JsonIgnore
     String jwt;

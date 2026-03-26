@@ -33,6 +33,9 @@ public class UserDto {
     @NotNull(message = "role can't be null")
     Role role;  // SUPER_ADMIN, OFFICIAL, STUDENT
 
+    @NotBlank(message = "regdNo can't be null or empty")
+    String regdNo;
+
     @NotNull(message = "status can't be null")
     UserStatus status; // ACTIVE, BLOCKED (optional)
 
