@@ -11,4 +11,6 @@ public interface UserService {
     Optional<?> saveUser(UserDto userDto, MultipartFile profilePic, MultipartFile coverImg) throws DigitalLibraryException, IOException;
 
     UserDto getUserDetails(Long userId) throws DigitalLibraryException;
+
+    Optional<?> userFinalSubmit(Long userId) throws DigitalLibraryException;
 }
