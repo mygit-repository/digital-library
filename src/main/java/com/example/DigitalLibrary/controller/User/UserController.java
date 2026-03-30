@@ -18,15 +18,21 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/save-user")
-    public ResponseEntity<?> saveUser(@RequestPart @Valid UserDto userDto,
-                                      @RequestParam(name = "profileImage", required = false)MultipartFile profileImage,
-                                      @RequestParam(name = "coverImage", required = false) MultipartFile coverImage) throws Exception {
-        return ResponseEntity.ok(userService.saveUser(userDto, profileImage, coverImage));
+    public ResponseEntity<?> userRegistration(@RequestPart @Valid UserDto userDto,
+                                              @RequestParam(name = "profileImage", required = false) MultipartFile profileImage,
+                                              @RequestParam(name = "coverImage", required = false) MultipartFile coverImage) throws Exception {
+        return ResponseEntity.ok(userService.userRegistration(userDto, profileImage, coverImage));
     }
 
-    @PostMapping("/final-submit/cci-childplacement")
+    @PostMapping("/final-submit")
     public ResponseEntity<?> userFinalSubmit(@RequestParam(name = "userId") Long userId) throws Exception {
         return ResponseEntity.ok(userService.userFinalSubmit(userId));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestParam(name = "username") String username,
+                                   @RequestParam(name = "password") String password) throws Exception {
+        return ResponseEntity.ok(userService.login(username, password));
     }
 
     @GetMapping("/get-user")

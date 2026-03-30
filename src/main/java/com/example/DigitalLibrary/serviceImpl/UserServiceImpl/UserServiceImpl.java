@@ -9,6 +9,7 @@ import com.example.DigitalLibrary.entity.User;
 import com.example.DigitalLibrary.exceptions.DigitalLibraryException;
 import com.example.DigitalLibrary.repository.UserRepository;
 import com.example.DigitalLibrary.service.UserService.UserService;
+import com.example.DigitalLibrary.utils.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -24,10 +25,11 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     @Override
     @Transactional(value = Transactional.TxType.REQUIRES_NEW, rollbackOn = Exception.class)
-    public Optional<?> saveUser(UserDto userDto, MultipartFile profileImage, MultipartFile coverImage) throws DigitalLibraryException, IOException {
+    public Optional<?> userRegistration(UserDto userDto, MultipartFile profileImage, MultipartFile coverImage) throws DigitalLibraryException, IOException {
         User user;
         if (userDto.getUserId() == null) {
             user = new User();
@@ -85,6 +87,26 @@ public class UserServiceImpl implements UserService {
                         .userRegdNo(user.getRegdNo())
                         .build()
         );
+    }
+
+    @Override
+    public ResponseDto login(String username, String password) {
+
+        User user = userRepository.findByEmailOrRegdNo(username, username)
+                .orElseThrow(() -> new DigitalLibraryException(
+                        ErrorCode.ENTITY_NOT_FOUND, "Invalid credentials"));
+
+        if (!user.getPassword().equals(password)) {
+            throw new DigitalLibraryException(ErrorCode.REQUEST_ERROR, "Invalid password");
+        }
+
+        String token = jwtUtil.generateToken(username);
+
+        return ResponseDto.builder()
+                .status("success")
+                .message("Login successful")
+                .token(token)
+                .build();
     }
 
     @Override

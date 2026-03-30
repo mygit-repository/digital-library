@@ -22,4 +22,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
                 ORDER BY u.regdNo DESC
             """)
     List<String> findTopRegdNoByRole(@Param("role") Role role, Pageable pageable);
+
+    Optional<User> findByEmailOrRegdNo(String email, String regdNo);
 }
