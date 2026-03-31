@@ -1,10 +1,13 @@
 package com.example.DigitalLibrary.dto;
 
+import com.example.DigitalLibrary.constants.Gender;
 import com.example.DigitalLibrary.constants.Role;
 import com.example.DigitalLibrary.constants.UserStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -35,6 +38,14 @@ public class UserDto {
 
     @NotBlank(message = "regdNo can't be null or empty")
     String regdNo;
+
+    @NotBlank(message = "gender can't be null or empty")
+    Gender gender; //MALE, FEMALE, TRANSGENDER
+
+    @NotNull(message = "dob can't be null")
+    LocalDate dob;
+
+    String age;
 
     @NotNull(message = "status can't be null")
     UserStatus status; // ACTIVE, BLOCKED (optional)
