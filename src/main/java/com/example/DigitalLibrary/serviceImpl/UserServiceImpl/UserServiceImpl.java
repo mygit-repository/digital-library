@@ -1,5 +1,7 @@
 package com.example.DigitalLibrary.serviceImpl.UserServiceImpl;
 
+import com.example.DigitalLibrary.config.CommonApplicationProperties;
+import com.example.DigitalLibrary.config.UploadPaths;
 import com.example.DigitalLibrary.constants.ErrorCode;
 import com.example.DigitalLibrary.constants.Role;
 import com.example.DigitalLibrary.constants.UserStatus;
@@ -9,6 +11,8 @@ import com.example.DigitalLibrary.entity.User;
 import com.example.DigitalLibrary.exceptions.DigitalLibraryException;
 import com.example.DigitalLibrary.repository.UserRepository;
 import com.example.DigitalLibrary.service.UserService.UserService;
+import com.example.DigitalLibrary.utils.AgeCalculator;
+import com.example.DigitalLibrary.utils.ImageUploads;
 import com.example.DigitalLibrary.utils.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +28,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private final CommonApplicationProperties commonApplicationProperties;
+    private final ImageUploads imageUploads;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
@@ -32,8 +38,11 @@ public class UserServiceImpl implements UserService {
     public Optional<?> userRegistration(UserDto userDto, MultipartFile profileImage, MultipartFile coverImage) throws DigitalLibraryException, IOException {
         User user;
         if (userDto.getUserId() == null) {
+            if (profileImage == null || profileImage.isEmpty())
+                throw new DigitalLibraryException(ErrorCode.REQUEST_ERROR, "profileImage is required");
+            if (coverImage == null || coverImage.isEmpty())
+                throw new DigitalLibraryException(ErrorCode.REQUEST_ERROR, "coverImage is required");
             user = new User();
-            user.setStatus(UserStatus.ACTIVE);
             userRepository.save(user);
         } else {
             user = userRepository.findByIdAndIsDeleted(userDto.getUserId(), false)
@@ -44,12 +53,27 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userDto.getEmail());
         user.setPassword(userDto.getPassword());
         user.setRole(userDto.getRole());
+        user.setGender(userDto.getGender());
+        user.setDob(userDto.getDob());
         user.setStatus(UserStatus.DRAFT);
         /**
          * Image uploaded here...
          */
-        String profileImg = profileImage.getName();
-        user.setProfileImagePath(profileImg);
+        String profileImg = "";
+        String coverImg = "";
+        String basePath = commonApplicationProperties.getAssetPath();
+        if (profileImage != null) {
+            profileImg = profileImage.getOriginalFilename();
+            user.setProfileImagePath(profileImg);
+            String path = basePath + UploadPaths.UPLOADPROFILEPATH(user.getId());
+            imageUploads.saveFile(profileImage, path, profileImg);
+        }
+        if (coverImage != null) {
+            coverImg = coverImage.getOriginalFilename();
+            user.setCoverImagePath(coverImg);
+            String path = basePath + UploadPaths.UPLOADCOVERIMGPATH(user.getId());
+            imageUploads.saveFile(coverImage, path, coverImg);
+        }
 
         return Optional.ofNullable(ResponseDto.builder().id(user.getId()).status("success").message("Saved Successfully").build());
     }
@@ -92,15 +116,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseDto login(String username, String password) {
 
-        User user = userRepository.findByEmailOrRegdNo(username, username)
-                .orElseThrow(() -> new DigitalLibraryException(
-                        ErrorCode.ENTITY_NOT_FOUND, "Invalid credentials"));
+        User user = userRepository.findByEmailAndIsDeletedOrRegdNoAndIsDeleted(username, false, username, false)
+                .orElseThrow(() -> new DigitalLibraryException(ErrorCode.ENTITY_NOT_FOUND, "Invalid credentials"));
+        if (user.getRegdNo() == null)
+            throw new DigitalLibraryException(ErrorCode.REQUEST_ERROR, "First complete User Registration Process");
+        if (user.getStatus().equals(UserStatus.BLOCKED))
+            throw new DigitalLibraryException(ErrorCode.REQUEST_ERROR, "This account is blocked, please contact administration");
 
         if (!user.getPassword().equals(password)) {
             throw new DigitalLibraryException(ErrorCode.REQUEST_ERROR, "Invalid password");
         }
 
         String token = jwtUtil.generateToken(username);
+
 
         return ResponseDto.builder()
                 .status("success")
@@ -119,11 +147,19 @@ public class UserServiceImpl implements UserService {
         userDto.setFullName(user.getFullName());
         userDto.setEmail(user.getEmail());
         userDto.setPassword(user.getPassword());
+        userDto.setGender(user.getGender());
+        userDto.setDob(user.getDob());
+        userDto.setAge(AgeCalculator.calculateAgeFormatted(user.getDob()));
         userDto.setRole(user.getRole());
         userDto.setRegdNo(user.getRegdNo());
         userDto.setStatus(user.getStatus());
-        userDto.setProfileImagePath(user.getProfileImagePath());
-        userDto.setCoverImagePath(user.getCoverImagePath());
+
+        String basePath = commonApplicationProperties.getBaseUrl() + UploadPaths.GETPROFILEPATH(userId);
+        String profileImg = basePath + user.getProfileImagePath();
+        String path = commonApplicationProperties.getBaseUrl() + UploadPaths.GETCOVERIMGPATH(userId);
+        String coverImg= path + user.getCoverImagePath();
+        userDto.setProfileImagePath(profileImg);
+        userDto.setCoverImagePath(coverImg);
         return userDto;
     }
 

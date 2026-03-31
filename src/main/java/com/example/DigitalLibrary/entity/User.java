@@ -1,5 +1,6 @@
 package com.example.DigitalLibrary.entity;
 
+import com.example.DigitalLibrary.constants.Gender;
 import com.example.DigitalLibrary.constants.Permission;
 import com.example.DigitalLibrary.constants.Role;
 import com.example.DigitalLibrary.constants.UserStatus;
@@ -7,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,6 +33,13 @@ public class User extends Auditable<String> {
 
     @Column(name = "password", nullable = false)
     String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender")
+    Gender gender;
+
+    @Column(name = "dob")
+    LocalDate dob;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)

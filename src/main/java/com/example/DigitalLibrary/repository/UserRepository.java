@@ -23,5 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             """)
     List<String> findTopRegdNoByRole(@Param("role") Role role, Pageable pageable);
 
+    Optional<User> findByEmailAndIsDeletedOrRegdNoAndIsDeleted(String email, boolean isDeleted, String regdNo, boolean isDeleted1);
+
     Optional<User> findByEmailOrRegdNo(String email, String regdNo);
 }
